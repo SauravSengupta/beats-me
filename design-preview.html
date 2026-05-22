@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Step Sequencer — Design System Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #141a2a;
+    --cell-inactive: #1c2438;
+    --cell-active: #00e5ff;
+    --cell-active-dim: rgba(0, 229, 255, 0.15);
+    --cell-glow: rgba(0, 229, 255, 0.4);
+    --playhead: rgba(255, 255, 255, 0.15);
+    --playhead-line: rgba(255, 255, 255, 0.6);
+    --muted: #5a6a8a;
+    --text: #c8d6e5;
+    --text-dim: #7a8ba0;
+    --font-ui: 'Space Grotesk', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* --- Header --- */
+  .header {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 48px 24px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .header h1 {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .header .badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    border: 1px solid rgba(90, 106, 138, 0.3);
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+
+  /* --- Section --- */
+  .section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  /* --- Color Swatches --- */
+  .swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  .swatch {
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid rgba(90, 106, 138, 0.15);
+  }
+  .swatch-color {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .swatch-color.glow {
+    box-shadow: inset 0 0 30px var(--cell-glow);
+  }
+  .swatch-info {
+    padding: 10px 12px;
+  }
+  .swatch-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .swatch-hex {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* --- Typography Specimen --- */
+  .type-specimen {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .type-row {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 24px;
+    border: 1px solid rgba(90, 106, 138, 0.1);
+  }
+  .type-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .type-sample-display {
+    font-family: var(--font-ui);
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .type-sample-ui {
+    font-family: var(--font-ui);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .type-sample-mono {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--cell-active);
+  }
+  .type-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  /* --- Sequencer Grid Mockup --- */
+  .grid-container {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 24px;
+    border: 1px solid rgba(90, 106, 138, 0.1);
+    overflow: hidden;
+  }
+  .grid-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .grid-tempo {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .grid-tempo span {
+    color: var(--cell-active);
+  }
+  .grid-controls {
+    display: flex;
+    gap: 8px;
+  }
+  .btn {
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: none;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid rgba(90, 106, 138, 0.25);
+  }
+  .btn-ghost:hover {
+    border-color: var(--cell-active);
+    color: var(--cell-active);
+  }
+  .btn-accent {
+    background: transparent;
+    color: var(--cell-active);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+  }
+  .btn-accent:hover {
+    background: rgba(0, 229, 255, 0.1);
+    border-color: var(--cell-active);
+  }
+
+  .sequencer {
+    display: flex;
+    gap: 0;
+  }
+  .row-labels {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-right: 12px;
+    padding-top: 0;
+  }
+  .row-label {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    width: 36px;
+    justify-content: flex-end;
+    padding-right: 4px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(6, 48px);
+    gap: 3px;
+    flex: 1;
+  }
+  .cell {
+    border-radius: 6px;
+    transition: all 0.05s ease;
+    cursor: pointer;
+    position: relative;
+  }
+  .cell.inactive {
+    background: var(--cell-inactive);
+  }
+  .cell.inactive:hover {
+    background: #242e48;
+  }
+  .cell.active {
+    background: var(--cell-active);
+    box-shadow: 0 0 12px var(--cell-glow), inset 0 0 8px rgba(255, 255, 255, 0.15);
+  }
+  .cell.triggered {
+    background: var(--cell-active);
+    box-shadow: 0 0 24px var(--cell-glow), 0 0 48px rgba(0, 229, 255, 0.15), inset 0 0 12px rgba(255, 255, 255, 0.2);
+  }
+  .cell.past-loop {
+    background: rgba(28, 36, 56, 0.3);
+  }
+  .cell.playhead-col {
+    background: rgba(28, 36, 56, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* Pulsing cell animation */
+  .cell.pulsing {
+    animation: pulse-breathe 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse-breathe {
+    0%, 100% {
+      background: rgba(0, 229, 255, 0.35);
+      box-shadow: 0 0 8px rgba(0, 229, 255, 0.2);
+    }
+    50% {
+      background: var(--cell-active);
+      box-shadow: 0 0 24px var(--cell-glow), 0 0 48px rgba(0, 229, 255, 0.15);
+    }
+  }
+
+  /* Triggered glow animation */
+  .cell.glow-anim {
+    animation: trigger-glow 0.45s ease-out forwards;
+  }
+  @keyframes trigger-glow {
+    0% {
+      box-shadow: 0 0 32px rgba(0, 229, 255, 0.6), 0 0 64px rgba(0, 229, 255, 0.2);
+    }
+    100% {
+      box-shadow: 0 0 12px var(--cell-glow);
+    }
+  }
+
+  /* --- Buttons Specimen --- */
+  .buttons-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn-lg {
+    padding: 10px 24px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+  .btn-primary {
+    background: var(--cell-active);
+    color: var(--bg);
+    font-weight: 600;
+    border: none;
+  }
+  .btn-primary:hover {
+    background: #33ebff;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+  }
+
+  /* --- Motion Demo --- */
+  .motion-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .motion-card {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid rgba(90, 106, 138, 0.1);
+    text-align: center;
+  }
+  .motion-card .demo-cell {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    margin: 0 auto 12px;
+  }
+  .motion-card .label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .motion-card .timing {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* --- Spacing Ruler --- */
+  .spacing-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+  .spacing-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .spacing-vis {
+    background: rgba(0, 229, 255, 0.2);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    border-radius: 3px;
+  }
+  .spacing-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  /* --- Responsive --- */
+  @media (max-width: 640px) {
+    .header { padding: 32px 16px 16px; }
+    .section { padding: 24px 16px; }
+    .grid { grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(6, 40px); }
+    .row-label { height: 40px; font-size: 9px; width: 28px; }
+    .cell { border-radius: 4px; }
+    .motion-grid { grid-template-columns: repeat(2, 1fr); }
+    .swatches { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+    .type-sample-display { font-size: 28px; }
+  }
+
+  /* Divider */
+  .divider {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .divider hr {
+    border: none;
+    border-top: 1px solid rgba(90, 106, 138, 0.12);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Step Sequencer — Design System</h1>
+  <span class="badge">v0.1 preview</span>
+</div>
+
+<!-- COLOR PALETTE -->
+<div class="section">
+  <div class="section-title">Color Palette</div>
+  <div class="swatches">
+    <div class="swatch">
+      <div class="swatch-color" style="background: #0a0e17;"></div>
+      <div class="swatch-info"><div class="swatch-name">Background</div><div class="swatch-hex">#0a0e17</div></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background: #141a2a;"></div>
+      <div class="swatch-info"><div class="swatch-name">Surface</div><div class="swatch-hex">#141a2a</div></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background: #1c2438;"></div>
+      <div class="swatch-info"><div class="swatch-name">Cell Inactive</div><div class="swatch-hex">#1c2438</div></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color glow" style="background: #00e5ff;"></div>
+      <div class="swatch-info"><div class="swatch-name">Cell Active (Cyan)</div><div class="swatch-hex">#00e5ff</div></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background: #c8d6e5;"></div>
+      <div class="swatch-info"><div class="swatch-name">Text</div><div class="swatch-hex">#c8d6e5</div></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background: #5a6a8a;"></div>
+      <div class="swatch-info"><div class="swatch-name">Muted</div><div class="swatch-hex">#5a6a8a</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- TYPOGRAPHY -->
+<div class="section">
+  <div class="section-title">Typography</div>
+  <div class="type-specimen">
+    <div class="type-row">
+      <div class="type-label">Display — Space Grotesk 700</div>
+      <div class="type-sample-display">Step Sequencer</div>
+      <div class="type-meta">Font: Space Grotesk · Weight: 700 · Size: 36px · Tracking: -0.01em</div>
+    </div>
+    <div class="type-row">
+      <div class="type-label">UI — Space Grotesk 500</div>
+      <div class="type-sample-ui">Share your beat · Reset grid · Tap to begin</div>
+      <div class="type-meta">Font: Space Grotesk · Weight: 500 · Size: 14px</div>
+    </div>
+    <div class="type-row">
+      <div class="type-label">Data — JetBrains Mono 400</div>
+      <div class="type-sample-mono">120 BPM · 8 steps · Loop: 4 bars · Grid: 6×8</div>
+      <div class="type-meta">Font: JetBrains Mono · Weight: 400 · Size: 14px</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- SEQUENCER GRID MOCKUP -->
+<div class="section">
+  <div class="section-title">Sequencer Grid — Active State</div>
+  <div class="grid-container">
+    <div class="grid-header">
+      <div class="grid-tempo"><span>120</span> BPM · Loop: 4 steps</div>
+      <div class="grid-controls">
+        <button class="btn btn-ghost">Reset</button>
+        <button class="btn btn-accent">Share</button>
+      </div>
+    </div>
+    <div class="sequencer">
+      <div class="row-labels">
+        <div class="row-label">Pad</div>
+        <div class="row-label">Lead</div>
+        <div class="row-label">Bass</div>
+        <div class="row-label">Hat</div>
+        <div class="row-label">Snr</div>
+        <div class="row-label">Kick</div>
+      </div>
+      <div class="grid" id="grid-active">
+        <!-- Row 1: Pad -->
+        <div class="cell inactive"></div>
+        <div class="cell inactive"></div>
+        <div class="cell active"></div>
+        <div class="cell inactive"></div>
+        <div class="cell past-loop"></div>
+        <div class="cell past-loop"></div>
+        <div class="cell past-loop"></div>
+        <div class="cell past-loop"></div>
+        <!-- Row 2: Lead -->
+        <div class="cell active"></div>
+        <div class="cell inactive"></div>
+        <div class="cell inactive"></div>
+        <div class="cell active"></div>
+        <div class="cell past-loop"></div>
+        <div class="cell past-loop"></div>
+        <div class="cell past-loop"></div>
+        <div class="cell past-loop"></div>
+        <!-- Row 3: Bass -->
+        <div class="cell triggered glow-anim"></div>
+        <div class="cell inactive"></div>
+        <div class="cell active"></div>
+        <div class="cell inactive"></div>
+        <div class="cell past-loop"></div>
+        <div class="cell past-loop"></div>
+        <div class="cell past-loop"></div>
+        <div class="cell past-loop"></div>
+        <!-- Row 4: Hat -->
+        <div class="cell active"></div>
+        <div class="cell active"></div>
+        <div class="cell active"></div>
+        <div class="cell active"></div>
+        <div class="cell past-loop"></div>
+        <div class="cell past-loop"></div>
+        <div class="cell past-loop"></div>
+        <div class="cell past-loop"></div>
+        <!-- Row 5: Snare -->
+        <div class="cell inactive"></div>
+        <div class="cell inactive"></div>
+        <div class="cell active"></div>
+        <div class="cell inactive"></div>
+        <div class="cell past-loop"></div>
+        <div class="cell past-loop"></div>
+        <div class="cell past-loop"></div>
+        <div class="cell past-loop"></div>
+        <!-- Row 6: Kick -->
+        <div class="cell triggered glow-anim"></div>
+        <div class="cell inactive"></div>
+        <div class="cell active"></div>
+        <div class="cell inactive"></div>
+        <div class="cell past-loop"></div>
+        <div class="cell past-loop"></div>
+        <div class="cell past-loop"></div>
+        <div class="cell past-loop"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- PULSING CELL STATE (Audio Start Gate) -->
+<div class="section">
+  <div class="section-title">Audio Start Gate — Pulsing Cell State</div>
+  <div class="grid-container">
+    <div class="sequencer">
+      <div class="row-labels">
+        <div class="row-label">Pad</div>
+        <div class="row-label">Lead</div>
+        <div class="row-label">Bass</div>
+        <div class="row-label">Hat</div>
+        <div class="row-label">Snr</div>
+        <div class="row-label">Kick</div>
+      </div>
+      <div class="grid">
+        <!-- All inactive except bottom-left pulsing -->
+        <div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div>
+        <div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div>
+        <div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div>
+        <div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div>
+        <div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div>
+        <div class="cell pulsing"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div><div class="cell inactive"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- BUTTONS -->
+<div class="section">
+  <div class="section-title">Buttons</div>
+  <div class="buttons-row">
+    <button class="btn btn-lg btn-primary">Share Beat</button>
+    <button class="btn btn-lg btn-accent">Export</button>
+    <button class="btn btn-lg btn-ghost">Reset</button>
+  </div>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- MOTION -->
+<div class="section">
+  <div class="section-title">Motion Timing</div>
+  <div class="motion-grid">
+    <div class="motion-card">
+      <div class="demo-cell" style="background: var(--cell-active); border-radius: 6px;"></div>
+      <div class="label">Cell Toggle</div>
+      <div class="timing">&lt; 50ms · instant</div>
+    </div>
+    <div class="motion-card">
+      <div class="demo-cell triggered glow-anim" style="border-radius: 6px;"></div>
+      <div class="label">Trigger Glow</div>
+      <div class="timing">150ms bloom · 300ms fade</div>
+    </div>
+    <div class="motion-card">
+      <div class="demo-cell pulsing" style="border-radius: 6px;"></div>
+      <div class="label">Pulsing Cell</div>
+      <div class="timing">1.5s cycle · ease-in-out</div>
+    </div>
+    <div class="motion-card">
+      <div class="demo-cell" style="background: var(--cell-inactive); opacity: 0.3; border-radius: 6px;"></div>
+      <div class="label">Past Loop End</div>
+      <div class="timing">opacity: 0.3</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"><hr></div>
+
+<!-- SPACING -->
+<div class="section">
+  <div class="section-title">Spacing Scale (4px base)</div>
+  <div class="spacing-row">
+    <div class="spacing-block"><div class="spacing-vis" style="width:8px; height:8px;"></div><div class="spacing-label">2xs · 2</div></div>
+    <div class="spacing-block"><div class="spacing-vis" style="width:12px; height:12px;"></div><div class="spacing-label">xs · 4</div></div>
+    <div class="spacing-block"><div class="spacing-vis" style="width:20px; height:20px;"></div><div class="spacing-label">sm · 8</div></div>
+    <div class="spacing-block"><div class="spacing-vis" style="width:32px; height:32px;"></div><div class="spacing-label">md · 16</div></div>
+    <div class="spacing-block"><div class="spacing-vis" style="width:44px; height:44px;"></div><div class="spacing-label">lg · 24</div></div>
+    <div class="spacing-block"><div class="spacing-vis" style="width:56px; height:56px;"></div><div class="spacing-label">xl · 32</div></div>
+    <div class="spacing-block"><div class="spacing-vis" style="width:72px; height:72px;"></div><div class="spacing-label">2xl · 48</div></div>
+  </div>
+</div>
+
+<div class="section" style="padding-bottom: 64px;">
+  <div style="font-family: var(--font-mono); font-size: 11px; color: var(--muted); text-align: center;">
+    Design system preview · Generated by /design-consultation · 2026-03-20
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+.DS_Store
+Thumbs.db
+.gstack/
+
+# AI tooling — local only
+.claude/
+
+# Test artifacts
+.playwright-mcp/
+test-results/
+
+# Local planning notes — not published
+TODOS.md
+docs/designs/step-sequencer-mvp.md
